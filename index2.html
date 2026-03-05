@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Lillow®">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#7C3AED">
+  <meta name="description" content="Lillow® Programme Expert — Diagnostic & Suivi Personnalisé 90 Jours">
+  <title>Lillow® — Programme Expert</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'DM Sans', sans-serif; background: #F9FAFB; -webkit-font-smoothing: antialiased; }
+    input { font-family: 'DM Sans', sans-serif; }
+    button { font-family: 'DM Sans', sans-serif; }
+    @keyframes sp { to { transform: rotate(360deg); } }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+const { useState, useEffect } = React;
+
+/* Lillow® Programme Expert — V4 GitHub Pages */
+
+const B = {
+  purple: "#7C3AED", purpleDark: "#5B21B6", purpleDeep: "#4C1D95",
+  purpleLight: "#EDE9FE", purpleSoft: "#F5F3FF", purpleMuted: "#A78BFA",
+  purpleText: "#6D28D9",
+  gold: "#B8860B", goldBg: "#FFFBEB", goldBorder: "#FDE68A",
+  bg: "#FFFFFF", card: "#FFFFFF", border: "#F0F0F5",
+  text: "#111827", textSoft: "#4B5563", textMuted: "#9CA3AF",
+  success: "#059669", successBg: "#ECFDF5", successBorder: "#A7F3D0",
+  warn: "#D97706", warnBg: "#FFFBEB",
+  error: "#DC2626", errorBg: "#FEF2F2",
+  pageBg: "#F9FAFB",
+};
+
+const PRODUCT_URL = "https://lillow.fr/products/serum-naturel-inhibeur-integral";
+const font = "'DM Sans', sans-serif";
+const fontS = "'Cormorant Garamond', serif";
+
+// ─── STORAGE (localStorage) ───
+const SK = { ans: "lw4-ans", cal: "lw4-cal", start: "lw4-start", cure: "lw4-cure" };
+function sG(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e) { return null; } }
+function sS(k, v) { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+// ─── DATA ───
+const PHASES = [
+  { week: "Semaine 1-2", label: "Activation", desc: "Effet apaisant. Les actifs commencent à agir en profondeur sur le follicule pileux.", icon: "🌱" },
+  { week: "Semaine 3-4", label: "Ralentissement", desc: "Les premiers signes de ralentissement apparaissent. Les poils deviennent progressivement plus fins.", icon: "🌿" },
+  { week: "Semaine 5-6", label: "Premiers changements", desc: "Vous commencez à espacer naturellement vos épilations.", icon: "✨" },
+  { week: "Semaine 7-8", label: "Accélération", desc: "Les changements s'accélèrent. La peau est plus douce.", icon: "🌸" },
+  { week: "Semaine 9-10", label: "Évolution visible", desc: "Vous pouvez espacer vos épilations de plus en plus.", icon: "💫" },
+  { week: "Semaine 11-12", label: "Phase optimale", desc: "La cure atteint son plein potentiel. Maintenez le protocole.", icon: "🏆" },
+];
+
+const PHASE_TIPS = [
+  { phase: 0, title: "Comment le Cyperus Rotundus agit sur votre peau", content: "Dès la première application, les actifs du sérum commencent à pénétrer dans le follicule pileux. Le Cyperus Rotundus agit en profondeur pour cibler directement la racine du poil. C'est un processus progressif — comme tout soin naturel, les actifs s'accumulent jour après jour. Votre objectif ces deux premières semaines : installer votre routine matin + soir sans manquer aucune application." },
+  { phase: 1, title: "Comment savoir si votre cure fonctionne", content: "Les premiers signes sont subtils : les poils repoussent un peu plus lentement, un peu plus fins. Beaucoup de femmes ne le remarquent pas immédiatement parce qu'elles cherchent un changement radical. Soyez attentive aux micro-signes : passez votre main sur la zone traitée, observez la texture." },
+  { phase: 2, title: "L'exfoliation : votre accélérateur", content: "Si vous utilisez le gant exfoliant, c'est le moment d'être régulière. L'exfoliation retire les cellules mortes qui s'accumulent et empêchent les actifs de pénétrer en profondeur. Une bonne exfoliation peut multiplier l'efficacité de votre sérum." },
+  { phase: 3, title: "Pourquoi ne pas arrêter maintenant", content: "C'est la phase où beaucoup de femmes sont tentées de réduire la fréquence d'application. Erreur classique. Votre follicule a besoin d'une exposition continue aux actifs pour que le processus se poursuive. Maintenez vos 2 applications quotidiennes — vous êtes dans la phase d'accélération." },
+  { phase: 4, title: "Adapter votre routine d'épilation", content: "Vous commencez à espacer vos épilations naturellement. Continuez votre méthode habituelle mais observez : si vous pouvez attendre un jour de plus entre deux épilations, c'est que votre cure progresse. Continuez le sérum même les jours sans épilation." },
+  { phase: 5, title: "Maintenir vos acquis", content: "Votre cure de 90 jours arrive à son terme. Pour maintenir et consolider ce que vous avez obtenu, il est recommandé de poursuivre le protocole. Les actifs du Cyperus Rotundus fonctionnent par accumulation — arrêter brutalement peut relancer progressivement le cycle normal." },
+];
+
+const PREP_STEPS = [
+  { icon: "🧼", title: "Exfoliez votre peau dès maintenant", desc: "2 à 3 fois cette semaine, exfoliez légèrement les zones à traiter. Ça retire les cellules mortes et prépare votre peau pour une absorption optimale dès le premier jour de cure." },
+  { icon: "🧴", title: "Hydratez bien", desc: "Une peau bien hydratée absorbe mieux les actifs. Appliquez votre crème hydratante habituelle tous les jours en attendant votre colis." },
+  { icon: "🪒", title: "Épilez-vous comme d'habitude", desc: "Continuez votre routine d'épilation normale. Le sérum s'appliquera directement après votre prochaine épilation, une fois le colis reçu." },
+  { icon: "📖", title: "Consultez votre protocole", desc: "Prenez le temps de lire votre protocole personnalisé dans l'onglet dédié. Le jour où vous recevez votre colis, vous saurez exactement quoi faire." },
+  { icon: "⏰", title: "Choisissez vos moments", desc: "Décidez maintenant de vos 2 moments d'application : matin (après la douche ?) et soir (avant de dormir ?). Intégrer le sérum à une habitude existante maximise la régularité." },
+];
+
+const MOTIVATION = [
+  "Installez votre routine matin + soir — c'est le plus important en ce moment. 💪",
+  "Votre régularité paie. Continuez sans rien changer. 🌿",
+  "Vous êtes presque à mi-parcours — votre peau vous remerciera. ✨",
+  "Chaque application compte. Ne lâchez rien. 🌸",
+  "Vous êtes sur la dernière ligne droite. Bravo pour votre discipline. 💫",
+  "Votre cure arrive à son terme — pensez à renouveler pour maintenir vos acquis. 🏆",
+];
+
+const FAQ_DATA = [
+  { q: "Je ne vois aucun résultat après 2 semaines, c'est normal ?", a: "Oui, tout à fait. Le Cyperus Rotundus agit progressivement sur le follicule pileux. Les premières semaines, les actifs s'accumulent en profondeur. Les premiers signes visibles (poils plus fins, repousse légèrement ralentie) apparaissent généralement entre la semaine 3 et 6. La clé, c'est la régularité — 2 applications par jour, sans exception." },
+  { q: "J'ai une légère réaction / rougeur, que faire ?", a: "Une légère sensation de chaleur ou de picotement les premiers jours est normal — c'est le signe que les actifs pénètrent. Si vous avez une rougeur persistante : réduisez à 1 application par jour pendant 3-4 jours, puis reprenez progressivement à 2 par jour. Si la réaction persiste au-delà d'une semaine, contactez notre équipe." },
+  { q: "Combien de fois par jour dois-je appliquer le sérum ?", a: "2 fois par jour : matin et soir, sur peau propre et sèche. C'est le protocole validé pour des résultats. Chaque application manquée ralentit le processus." },
+  { q: "Puis-je utiliser le sérum si je fais du laser ?", a: "Oui, le sérum complète très bien le laser. Il agit entre les séances pour maintenir la pression sur le follicule. Appliquez normalement sauf en cas de rougeur juste après une séance laser (attendez 24-48h)." },
+  { q: "Comment utiliser le gant exfoliant ?", a: "Humidifiez le gant, puis effectuez des mouvements circulaires doux sur la zone à traiter. L'exfoliation retire les cellules mortes et améliore la pénétration du sérum. Fréquence : 2-3 fois par semaine sur le corps, 1-2 fois sur les zones sensibles. Ne jamais utiliser sur le visage." },
+  { q: "Puis-je utiliser le sérum si je suis enceinte ou si j'allaite ?", a: "Si vous êtes enceinte, si vous allaitez, ou si vous envisagez une grossesse, nous vous recommandons de consulter votre médecin traitant ou votre sage-femme avant d'utiliser tout nouveau produit cosmétique, y compris le sérum Lillow. Chaque situation est différente et seul un professionnel de santé qui connaît votre dossier peut vous donner un avis adapté. Votre santé et celle de votre bébé passent avant tout." },
+  { q: "Que se passe-t-il si j'arrête après 90 jours ?", a: "Les actifs du Cyperus Rotundus fonctionnent par accumulation. Arrêter la cure signifie que le follicule reprendra progressivement son cycle normal. Pour maintenir vos acquis, il est recommandé de poursuivre le protocole, même à fréquence réduite (1 application/jour après 90 jours)." },
+  { q: "Est-ce que ça fonctionne sur toutes les zones ?", a: "Le sérum est formulé pour toutes les zones du corps : maillot, jambes, aisselles, bras, visage. Le protocole d'application varie légèrement selon la zone — consultez votre protocole personnalisé dans l'onglet dédié." },
+  { q: "Mon colis n'est pas encore arrivé", a: "Pas d'inquiétude ! Toutes nos commandes sont expédiées et suivies. Les délais peuvent varier selon les périodes et les zones de livraison, mais votre colis est en route. Vous avez reçu un email de confirmation avec un numéro de suivi — pensez à vérifier vos spams si vous ne le trouvez pas. En attendant, profitez de la Phase de Préparation dans l'onglet Accueil pour préparer votre peau et maximiser l'efficacité de votre cure dès le premier jour. Si le délai vous semble anormalement long, contactez notre équipe via l'email de confirmation — nous vérifierons le statut de votre commande." },
+];
+
+const ZONE_DATA = {
+  bikini: { label: "Maillot / Bikini", icon: "👙", protocol: "Appliquez sur toute la zone immédiatement après chaque épilation, puis 2 fois par jour sur peau propre et sèche.", tips: ["Évitez les sous-vêtements serrés juste après", "Exfoliation avec le gant : 2 fois/semaine", "Attendez 5 min avant de vous habiller"], glove: "2 fois/semaine — circulaire, pression légère" },
+  legs: { label: "Jambes", icon: "🦵", protocol: "Appliquez sur l'ensemble des jambes 2 fois par jour sur peau propre et sèche. Massez bien pour faire pénétrer.", tips: ["Appliquez de bas en haut", "Le gant est très efficace sur grandes surfaces", "Hydratez 30 min après si tiraillement"], glove: "2 à 3 fois/semaine — mouvements amples" },
+  face: { label: "Visage", icon: "🧑", protocol: "Fine couche sur les zones concernées 2 fois par jour sur peau propre. Très peu de produit nécessaire.", tips: ["Petite quantité suffit", "Ne PAS utiliser le gant sur le visage", "Appliquer avant la crème hydratante"], glove: "Ne PAS utiliser sur le visage" },
+  underarms: { label: "Aisselles", icon: "💪", protocol: "Appliquez 2 fois par jour sur peau propre et sèche.", tips: ["Attendez 1h après le rasage", "Pas de déo dans les 15 min", "Exfoliez très doucement"], glove: "1 à 2 fois/semaine max — très léger" },
+  multi: { label: "Plusieurs zones", icon: "✨", protocol: "Appliquez sur chaque zone 2 fois par jour. Commencez par votre zone prioritaire.", tips: ["Chaque zone réagit à son rythme", "Adaptez la pression du gant", "Ne négligez pas votre zone principale"], glove: "Variable selon zone" },
+};
+
+const METHOD_TIPS = {
+  razor: { label: "Rasoir", icon: "🪒", tip: "Appliquez immédiatement après le rasage — les pores ouverts maximisent l'absorption.", timing: "Juste après le rasage" },
+  wax: { label: "Cire", icon: "🍯", tip: "Attendez 24h après la cire puis 2 applis/jour sans interruption.", timing: "24h après la cire" },
+  epilator: { label: "Épilateur", icon: "⚡", tip: "Attendez 24h après l'épilation.", timing: "24h après" },
+  cream: { label: "Crème", icon: "🧴", tip: "Rincez bien, attendez 2h avant d'appliquer.", timing: "2h après" },
+  laser: { label: "Laser", icon: "💡", tip: "Application continue entre les séances (sauf rougeur).", timing: "Application continue" },
+  multiple: { label: "Plusieurs", icon: "🔄", tip: "Adaptez le timing selon la méthode du jour.", timing: "Variable" },
+};
+
+const SKIN_DATA = {
+  sensitive: { label: "Sensible", glove: "1 fois/semaine max, très léger", extra: "Si irritation, 1 appli/jour pendant 3 jours puis reprenez." },
+  normal: { label: "Normale", glove: "2 à 3 fois/semaine", extra: "Maintenez 2 applis/jour." },
+  combination: { label: "Mixte", glove: "2 fois/semaine", extra: "Insistez sur les zones sèches au massage." },
+  dry: { label: "Sèche", glove: "1 à 2 fois/semaine max", extra: "Hydratez 30 min après chaque application." },
+};
+
+const SPEED = {
+  fast: { label: "Repousse Rapide", badge: "⚡", desc: "Votre profil nécessite une régularité absolue. Ne sautez aucune application — matin et soir, chaque jour. La patience sera récompensée." },
+  moderate: { label: "Repousse Modérée", badge: "🌿", desc: "Profil standard. Maintenez vos 2 applications quotidiennes pour un parcours optimal." },
+  slow: { label: "Repousse Lente", badge: "🌸", desc: "Profil favorable. Maintenez le protocole pour des acquis durables." },
+};
+
+const QUESTIONS = [
+  { id: "name", type: "text", q: "Quel est votre prénom ?", sub: "Pour personnaliser votre programme.", ph: "Votre prénom" },
+  { id: "zone", type: "choice", q: "Quelle zone traitez-vous en priorité ?", sub: "Votre protocole sera adapté.", opts: [{ v: "bikini", l: "Maillot / Bikini", i: "👙" }, { v: "legs", l: "Jambes", i: "🦵" }, { v: "face", l: "Visage", i: "🧑" }, { v: "underarms", l: "Aisselles", i: "💪" }, { v: "multi", l: "Plusieurs zones", i: "✨" }] },
+  { id: "i1", type: "info", title: "Le saviez-vous ?", text: "Le Cyperus Rotundus (papyrus d'Égypte) est le seul actif 100% naturel validé par des études scientifiques pour agir sur la repousse du poil. Il cible directement le follicule pileux.", src: "Journal of Cosmetic Dermatology" },
+  { id: "skin", type: "choice", q: "Quel est votre type de peau ?", sub: "Pour adapter l'exfoliation.", opts: [{ v: "sensitive", l: "Sensible", i: "🌸" }, { v: "normal", l: "Normale", i: "🌿" }, { v: "combination", l: "Mixte", i: "💧" }, { v: "dry", l: "Sèche", i: "🍂" }] },
+  { id: "method", type: "choice", q: "Votre méthode d'épilation principale ?", sub: "Le timing d'application en dépend.", opts: [{ v: "razor", l: "Rasoir", i: "🪒" }, { v: "wax", l: "Cire", i: "🍯" }, { v: "epilator", l: "Épilateur", i: "⚡" }, { v: "cream", l: "Crème dépilatoire", i: "🧴" }, { v: "laser", l: "Laser", i: "💡" }, { v: "multiple", l: "Plusieurs", i: "🔄" }] },
+  { id: "i2", type: "info", title: "L'exfoliation change tout", text: "En retirant les cellules mortes, l'exfoliation permet aux actifs du sérum de pénétrer beaucoup plus profondément dans le follicule pileux. C'est un accélérateur naturel de votre cure.", src: "Protocole Expert Lillow®" },
+  { id: "frequency", type: "choice", q: "Fréquence d'épilation actuelle ?", sub: "Pour évaluer votre profil.", opts: [{ v: "daily", l: "Tous les jours", i: "📅" }, { v: "2-3days", l: "Tous les 2-3 jours", i: "🔄" }, { v: "weekly", l: "1 fois/semaine", i: "📆" }, { v: "biweekly", l: "Toutes les 2 semaines", i: "🗓️" }, { v: "less", l: "Moins souvent", i: "✅" }] },
+  { id: "problems", type: "multi", q: "Rencontrez-vous ces problèmes ?", sub: "Sélectionnez tout ce qui s'applique.", opts: [{ v: "ingrown", l: "Poils incarnés", i: "😣" }, { v: "irritation", l: "Irritations", i: "🔴" }, { v: "fast_regrowth", l: "Repousse rapide", i: "⚡" }, { v: "dark_hair", l: "Poils épais/foncés", i: "🖤" }, { v: "time", l: "Trop de temps perdu", i: "⏰" }, { v: "none", l: "Aucun", i: "✅" }] },
+  { id: "duration", type: "choice", q: "Depuis combien de temps gérez-vous ça ?", sub: "Dernière question.", opts: [{ v: "months", l: "Quelques mois", i: "📅" }, { v: "1year", l: "~1 an", i: "📆" }, { v: "1-3years", l: "1 à 3 ans", i: "🗓️" }, { v: "3-5years", l: "3 à 5 ans", i: "📊" }, { v: "forever", l: "Depuis toujours", i: "♾️" }] },
+];
+
+function getSpeed(f) { return f === "daily" || f === "2-3days" ? "fast" : f === "weekly" ? "moderate" : "slow"; }
+function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function dayToDate(s, i) { const d = new Date(s); d.setDate(d.getDate() + i); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function getProbAdv(p) {
+  const m = { ingrown: "Poils incarnés — le gant exfoliant est votre priorité.", irritation: "Irritations — appliquez 1h minimum après l'épilation.", fast_regrowth: "Repousse rapide — ne sautez aucune application.", dark_hair: "Poils épais — vos changements seront d'autant plus visibles. Patience.", time: "Gain de temps — vous espacerez naturellement vos épilations." };
+  return (p || []).filter(v => v !== "none").map(v => m[v]).filter(Boolean);
+}
+
+// ─── COMPONENTS ───
+function Card({ children, style: s, onClick }) { return <div onClick={onClick} style={{ background: "#fff", borderRadius: 14, padding: "16px", border: `1px solid ${B.border}`, marginBottom: 10, ...s }}>{children}</div>; }
+function Heading({ children }) { return <div style={{ fontSize: 14, fontWeight: 600, color: B.text, marginBottom: 8 }}>{children}</div>; }
+
+function AddToHomeScreen() {
+  return (
+    <div style={{ position: "fixed", bottom: 52, left: 0, right: 0, zIndex: 99, background: "linear-gradient(180deg, transparent 0%, #F9FAFB 15%)" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 12px 4px" }}>
+        <div style={{ background: B.purpleSoft, borderRadius: 10, padding: "8px 14px", display: "flex", alignItems: "center", gap: 8, border: `1px solid ${B.purpleLight}` }}>
+          <span style={{ fontSize: 13 }}>📌</span>
+          <p style={{ fontSize: 10.5, color: B.purpleText, margin: 0, lineHeight: 1.4, flex: 1 }}>
+            Enregistrez cette page en favori pour y revenir chaque jour
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── NAV ───
+function Nav({ active, go, unlocked }) {
+  const items = [
+    { id: "home", label: "Accueil", d: "M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5zM9 21V12h6v9" },
+    { id: "quiz", label: "Diagnostic", d: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 3h6v4H9zM9 14l2 2 4-4" },
+    { id: "protocol", label: "Protocole", d: "M12 20V10M6 20V4M18 20v-6", lock: !unlocked },
+    { id: "calendar", label: "Calendrier", d: "M3 4h18v18H3zM3 10h18M8 2v4M16 2v4", lock: !unlocked },
+    { id: "faq", label: "FAQ", d: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 16v-4M12 8h.01", lock: !unlocked },
+    { id: "vip", label: "VIP", d: "M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z", lock: !unlocked },
+  ];
+  return (
+    <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "#fff", borderTop: `1px solid #F0F0F5` }}>
+      <div style={{ display: "flex", maxWidth: 480, margin: "0 auto" }}>
+        {items.map(it => (
+          <button key={it.id} onClick={() => !it.lock && go(it.id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 1, padding: "7px 0 5px", background: "none", border: "none", cursor: it.lock ? "default" : "pointer", opacity: it.lock ? 0.3 : 1, position: "relative" }}>
+            <svg width="18" height="18" fill="none" stroke={active === it.id ? B.purple : "#9CA3AF"} strokeWidth="1.8" viewBox="0 0 24 24"><path d={it.d}/></svg>
+            <span style={{ fontSize: 9, fontWeight: active === it.id ? 600 : 400, color: active === it.id ? B.purple : "#9CA3AF", fontFamily: font }}>{it.label}</span>
+            {active === it.id && <div style={{ position: "absolute", top: 0, left: "25%", right: "25%", height: 2, background: B.purple, borderRadius: 1 }} />}
+            {it.lock && <span style={{ position: "absolute", top: 1, right: "15%", fontSize: 7 }}>🔒</span>}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+// ─── HOME ───
+function ShareCard({ name }) {
+  const [shared, setShared] = useState(false);
+  const shareText = `Hey ! Je viens de découvrir Lillow, un sérum naturel qui aide à espacer les épilations. Ils ont un programme de suivi hyper bien fait. Si ça t'intéresse, utilise mon code VIP20 pour avoir -20% 👉 ${PRODUCT_URL}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Lillow® — Sérum Anti-Repousse", text: shareText });
+        setShared(true);
+        setTimeout(() => setShared(false), 3000);
+      } catch (e) { /* user cancelled */ }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = shareText;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setShared(true);
+        setTimeout(() => setShared(false), 3000);
+      } catch (e) { /* ignore */ }
+    }
+  };
+
+  return (
+    <Card style={{ marginTop: 14 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <span style={{ fontSize: 22, flexShrink: 0 }}>💜</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: B.text, marginBottom: 4 }}>Une amie qui galère aussi ?</div>
+          <p style={{ fontSize: 12, color: B.textSoft, lineHeight: 1.6, margin: "0 0 10px" }}>Partagez-lui votre code VIP20 — elle aura -20% sur sa première cure.</p>
+          <button onClick={handleShare} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%", background: shared ? B.successBg : B.purpleSoft, color: shared ? B.success : B.purple, border: `1.5px solid ${shared ? B.successBorder : B.purpleLight}`, padding: "10px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: font, transition: "all 0.2s" }}>
+            {shared ? "✓ Message copié !" : "📤 Partager Lillow à une amie"}
+          </button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function SettingsSection({ onReset }) {
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const confirmed = confirmText.toUpperCase() === "RESET";
+
+  return (
+    <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${B.border}` }}>
+      <button onClick={() => setOpen(!open)} style={{ background: "none", border: "none", fontSize: 11, color: B.textMuted, cursor: "pointer", fontFamily: font, padding: 0, display: "flex", alignItems: "center", gap: 4, margin: "0 auto" }}>
+        ⚙️ Réglages
+      </button>
+      {open && (
+        <div style={{ marginTop: 12 }}>
+          <Card style={{ background: B.pageBg }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: B.text, marginBottom: 6 }}>Réinitialiser mon programme</div>
+            <p style={{ fontSize: 11, color: B.textMuted, lineHeight: 1.5, margin: "0 0 10px" }}>Cette action supprimera votre diagnostic, votre calendrier et toutes vos données. Cette action est irréversible.</p>
+            <p style={{ fontSize: 11, color: B.textSoft, margin: "0 0 8px" }}>Tapez <strong>RESET</strong> pour confirmer :</p>
+            <input value={confirmText} onChange={e => setConfirmText(e.target.value)} placeholder="Tapez RESET" style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: "10px 12px", border: `1.5px solid ${confirmed ? B.error : B.border}`, borderRadius: 8, background: "#fff", outline: "none", color: B.text, fontFamily: font, textTransform: "uppercase", letterSpacing: 2 }} />
+            <button onClick={() => { if (confirmed) { onReset(); setOpen(false); setConfirmText(""); } }} disabled={!confirmed} style={{ marginTop: 8, width: "100%", background: confirmed ? B.error : "#E5E7EB", color: "#fff", border: "none", padding: "10px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: confirmed ? "pointer" : "default", fontFamily: font }}>
+              Réinitialiser
+            </button>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Home({ ans, cal, start, cureOn, onNav, onStartCure, onReset }) {
+  const done = !!ans;
+  const today = todayStr();
+  const dayIdx = start ? Math.max(0, Math.floor((new Date(today) - new Date(start)) / 86400000)) : 0;
+  const phase = PHASES[Math.min(Math.floor(dayIdx / 7 / 2), 5)];
+  const phaseIdx = Math.min(Math.floor(dayIdx / 7 / 2), 5);
+  const totalC = Object.values(cal || {}).filter(Boolean).length;
+  const maxC = Math.max(1, (dayIdx + 1) * 2);
+  const adh = Math.round((totalC / maxC) * 100);
+  const streak = (() => { if (!start) return 0; let s = 0; for (let d = dayIdx; d >= 0; d--) { const ds = dayToDate(start, d); if (cal?.[`${ds}-am`] && cal?.[`${ds}-pm`]) s++; else if (d < dayIdx) break; } return s; })();
+  const todayAm = cal?.[`${today}-am`];
+  const todayPm = cal?.[`${today}-pm`];
+  const phaseTip = PHASE_TIPS[phaseIdx];
+
+  return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px 14px", borderBottom: `1px solid ${B.border}` }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontFamily: fontS, fontSize: 20, fontWeight: 700, color: B.purple }}>Lillow®</span>
+          <span style={{ fontSize: 10, color: B.textMuted, background: B.purpleSoft, padding: "3px 10px", borderRadius: 20, fontWeight: 500 }}>Programme Expert</span>
+        </div>
+        {done && <p style={{ fontSize: 14, color: B.text, margin: "8px 0 0", fontWeight: 500 }}>Bonjour {ans.name} 👋</p>}
+      </div>
+
+      <div style={{ padding: "14px 16px 90px" }}>
+        {!done ? (
+          <>
+            <Card style={{ textAlign: "center", padding: "28px 20px" }}>
+              <div style={{ fontSize: 40, marginBottom: 14 }}>🧪</div>
+              <h2 style={{ fontFamily: fontS, fontSize: 21, color: B.text, margin: "0 0 8px" }}>Bienvenue</h2>
+              <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: "0 0 20px" }}>Commencez votre diagnostic pour débloquer votre protocole personnalisé et votre calendrier de suivi.</p>
+              <button onClick={() => onNav("quiz")} style={{ background: B.purple, color: "#fff", border: "none", padding: "13px 28px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: font }}>Commencer mon diagnostic</button>
+            </Card>
+          </>
+        ) : !cureOn ? (
+          <>
+            {/* ── PHASE DE PRÉPARATION ── */}
+            <Card style={{ background: B.purpleSoft, border: `1px solid ${B.purpleLight}` }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: B.purple, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>📦 En attente de votre colis</div>
+              <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.6, margin: "0 0 12px" }}>Votre diagnostic est prêt ! Pendant que votre colis est en route, préparez votre peau pour maximiser l'efficacité de votre cure dès le premier jour.</p>
+              <button onClick={onStartCure} style={{ width: "100%", background: B.purple, color: "#fff", border: "none", padding: "13px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: font }}>📦 J'ai reçu ma commande — Démarrer ma cure</button>
+            </Card>
+
+            <Heading>🌿 Phase de Préparation — Votre peau se prépare</Heading>
+            {PREP_STEPS.map((s, i) => (
+              <Card key={i}>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <span style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>{s.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: B.text, marginBottom: 4 }}>{s.title}</div>
+                    <p style={{ fontSize: 12.5, color: B.textSoft, lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+            <button onClick={() => onNav("protocol")} style={{ width: "100%", background: "none", color: B.purple, border: `1.5px solid ${B.purple}`, padding: "12px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: font, marginTop: 4 }}>📋 Consulter mon protocole en attendant</button>
+
+            {/* ── REFERRAL ── */}
+            <ShareCard name={ans.name} />
+          </>
+        ) : (
+          <>
+            {/* ── CURE ACTIVE ── */}
+            <Card>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: B.text }}>Aujourd'hui — Jour {dayIdx + 1}</span>
+                <span style={{ fontSize: 10, color: B.purple, fontWeight: 600, background: B.purpleSoft, padding: "3px 10px", borderRadius: 10 }}>{phase.icon} {phase.label}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[{ p: "am", l: "Matin", e: "☀️" }, { p: "pm", l: "Soir", e: "🌙" }].map(x => {
+                  const ok = cal?.[`${today}-${x.p}`];
+                  return (
+                    <div key={x.p} style={{ flex: 1, background: ok ? B.successBg : B.pageBg, border: `1.5px solid ${ok ? B.successBorder : B.border}`, borderRadius: 12, padding: "14px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 22 }}>{ok ? "✅" : x.e}</div>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: ok ? B.success : B.textSoft, marginTop: 4 }}>{x.l} {ok && "✓"}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              {(!todayAm || !todayPm) && <button onClick={() => onNav("calendar")} style={{ width: "100%", background: B.purple, color: "#fff", border: "none", padding: "11px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: font, marginTop: 10 }}>Enregistrer mes applications</button>}
+            </Card>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              {[{ v: streak, l: "Streak", e: "🔥" }, { v: `${adh}%`, l: "Adhérence", e: "📊" }, { v: `${dayIdx + 1}/90`, l: "Jours", e: "📅" }].map((s, i) => (
+                <Card key={i} style={{ flex: 1, textAlign: "center", padding: "10px 6px", marginBottom: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: B.text }}>{s.e} {s.v}</div>
+                  <div style={{ fontSize: 9, color: B.textMuted, marginTop: 2 }}>{s.l}</div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Phase tip */}
+            {phaseTip && (
+              <Card style={{ background: B.purpleSoft, border: `1px solid ${B.purpleLight}` }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: B.purple, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>💡 Conseil — {phase.week}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: B.text, marginBottom: 6 }}>{phaseTip.title}</div>
+                <p style={{ fontSize: 12.5, color: B.textSoft, lineHeight: 1.7, margin: 0 }}>{phaseTip.content}</p>
+              </Card>
+            )}
+
+            {/* Quick nav */}
+            <Card>
+              {[
+                { i: "📋", l: "Mon protocole", t: "protocol" },
+                { i: "📅", l: "Calendrier", t: "calendar" },
+                { i: "❓", l: "Questions fréquentes", t: "faq" },
+                { i: "👑", l: "Espace VIP — Code -20%", t: "vip" },
+              ].map((a, idx) => (
+                <button key={idx} onClick={() => onNav(a.t)} style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", padding: "11px 0", background: "none", border: "none", borderTop: idx ? `1px solid ${B.border}` : "none", cursor: "pointer", fontFamily: font }}>
+                  <span style={{ fontSize: 16 }}>{a.i}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: B.text, flex: 1 }}>{a.l}</span>
+                  <span style={{ color: B.textMuted }}>›</span>
+                </button>
+              ))}
+            </Card>
+
+            {dayIdx >= 55 && (
+              <Card style={{ background: B.goldBg, border: `1px solid ${B.goldBorder}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <span style={{ fontSize: 20 }}>🔄</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: B.text }}>Renouvelez votre cure</div>
+                    <div style={{ fontSize: 12, color: B.textSoft }}>Code VIP20 : -20% à vie</div>
+                  </div>
+                </div>
+                <a href={PRODUCT_URL} target="_blank" rel="noopener" style={{ display: "block", textAlign: "center", background: B.purple, color: "#fff", padding: "11px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none", fontFamily: font }}>Commander →</a>
+              </Card>
+            )}
+
+            {/* Motivation */}
+            <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
+              <p style={{ fontSize: 12, color: B.textMuted, margin: 0, fontStyle: "italic" }}>{MOTIVATION[phaseIdx] || MOTIVATION[0]}</p>
+            </div>
+          </>
+        )}
+
+        {/* ── SETTINGS ── */}
+        {done && (
+          <SettingsSection onReset={onReset} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── QUIZ ───
+function Quiz({ onComplete, existing }) {
+  const [step, setStep] = useState(0);
+  const [ans, setAns] = useState({});
+  const [anim, setAnim] = useState(false);
+  const [txt, setTxt] = useState("");
+  const [multi, setMulti] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [ls, setLs] = useState(0);
+
+  if (existing) return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}` }}><span style={{ fontFamily: fontS, fontSize: 18, fontWeight: 700, color: B.purple }}>Lillow®</span></div>
+      <div style={{ padding: "40px 20px", textAlign: "center" }}><div style={{ fontSize: 48, marginBottom: 14 }}>✅</div><h2 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "0 0 8px" }}>Diagnostic complété</h2><p style={{ fontSize: 13, color: B.textSoft }}>Protocole actif, {existing.name}.</p></div>
+    </div>
+  );
+
+  if (loading) {
+    const steps = ["Analyse du profil...", "Score de repousse...", `Protocole pour ${ans.name || "vous"}...`, "Calendrier 90 jours...", "Programme prêt !"];
+    return (
+      <div style={{ minHeight: "100vh", background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ width: 44, height: 44, borderRadius: "50%", border: `3px solid ${B.border}`, borderTopColor: B.purple, animation: "sp .8s linear infinite", marginBottom: 24 }} />
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}}`}</style>
+        {steps.map((s, i) => <p key={i} style={{ fontSize: 13, color: i <= ls ? B.text : "#D1D5DB", margin: "4px 0", fontWeight: i === ls ? 600 : 400, fontFamily: font }}>{i < ls ? "✓" : i === ls ? "●" : "○"} {s}</p>)}
+      </div>
+    );
+  }
+
+  const cur = QUESTIONS[step];
+  const realQs = QUESTIONS.filter(q => q.type !== "info");
+  const pIdx = QUESTIONS.slice(0, step + 1).filter(q => q.type !== "info").length;
+  const pct = Math.round((pIdx / realQs.length) * 100);
+
+  const next = v => {
+    const na = cur.type !== "info" ? { ...ans, [cur.id]: v } : ans;
+    if (cur.type !== "info") setAns(na);
+    setAnim(true);
+    setTimeout(() => {
+      if (step < QUESTIONS.length - 1) { setStep(step + 1); setTxt(""); setMulti([]); }
+      else { setLoading(true); let s = 0; const iv = setInterval(() => { s++; setLs(s); if (s >= 4) { clearInterval(iv); setTimeout(() => onComplete(na), 600); } }, 700); }
+      setAnim(false);
+    }, 200);
+  };
+
+  const toggleM = v => { if (v === "none") setMulti(["none"]); else setMulti(p => { const f = p.filter(x => x !== "none"); return f.includes(v) ? f.filter(x => x !== v) : [...f, v]; }); };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#fff" }}>
+      <div style={{ padding: "14px 20px 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span>
+          {step > 0 && <button onClick={() => { setStep(step - 1); setAnim(false); }} style={{ background: "none", border: "none", fontSize: 13, color: B.textMuted, cursor: "pointer", fontFamily: font }}>← Retour</button>}
+        </div>
+        <div style={{ height: 3, background: B.border, borderRadius: 2 }}><div style={{ height: "100%", width: `${pct}%`, background: B.purple, borderRadius: 2, transition: "width 0.4s" }} /></div>
+      </div>
+      <div style={{ padding: "16px 20px 90px", opacity: anim ? 0 : 1, transform: anim ? "translateX(14px)" : "none", transition: "all 0.2s" }}>
+        {cur.type === "info" ? (
+          <div style={{ paddingTop: 36, textAlign: "center" }}>
+            <div style={{ width: 42, height: 42, borderRadius: "50%", background: B.purpleSoft, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 18 }}>💡</div>
+            <h2 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "0 0 10px" }}>{cur.title}</h2>
+            <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.8, maxWidth: 340, margin: "0 auto 6px" }}>{cur.text}</p>
+            {cur.src && <p style={{ fontSize: 11, color: B.textMuted, fontStyle: "italic" }}>{cur.src}</p>}
+            <button onClick={() => next(null)} style={{ marginTop: 22, background: B.purple, color: "#fff", border: "none", padding: "12px 36px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: font }}>Continuer</button>
+          </div>
+        ) : (
+          <>
+            <h2 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "0 0 4px", lineHeight: 1.3 }}>{cur.q}</h2>
+            {cur.sub && <p style={{ fontSize: 12, color: B.textMuted, margin: "0 0 18px" }}>{cur.sub}</p>}
+            {cur.type === "text" && <>
+              <input value={txt} onChange={e => setTxt(e.target.value)} placeholder={cur.ph} onKeyDown={e => { if (e.key === "Enter" && txt.trim().length >= 2) next(txt.trim()); }} style={{ width: "100%", boxSizing: "border-box", fontSize: 16, padding: "13px 16px", border: `1.5px solid ${B.border}`, borderRadius: 12, background: B.pageBg, outline: "none", color: B.text, fontFamily: font }} onFocus={e => e.target.style.borderColor = B.purple} onBlur={e => e.target.style.borderColor = B.border} />
+              <button onClick={() => { if (txt.trim().length >= 2) next(txt.trim()); }} disabled={txt.trim().length < 2} style={{ marginTop: 12, width: "100%", background: txt.trim().length >= 2 ? B.purple : "#E5E7EB", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: txt.trim().length >= 2 ? "pointer" : "default", fontFamily: font }}>Continuer</button>
+            </>}
+            {cur.type === "choice" && <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{cur.opts.map(o => <button key={o.v} onClick={() => next(o.v)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", background: "#fff", border: `1.5px solid ${B.border}`, borderRadius: 12, cursor: "pointer", fontSize: 14, color: B.text, fontWeight: 500, fontFamily: font }} onMouseEnter={e => { e.currentTarget.style.borderColor = B.purple; e.currentTarget.style.background = B.purpleSoft; }} onMouseLeave={e => { e.currentTarget.style.borderColor = B.border; e.currentTarget.style.background = "#fff"; }}><span style={{ fontSize: 20 }}>{o.i}</span>{o.l}</button>)}</div>}
+            {cur.type === "multi" && <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{cur.opts.map(o => { const sel = multi.includes(o.v); return <button key={o.v} onClick={() => toggleM(o.v)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 16px", background: sel ? B.purpleSoft : "#fff", border: `1.5px solid ${sel ? B.purple : B.border}`, borderRadius: 12, cursor: "pointer", fontSize: 14, color: B.text, fontWeight: 500, fontFamily: font }}><span style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${sel ? B.purple : "#D1D5DB"}`, background: sel ? B.purple : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff", flexShrink: 0 }}>{sel ? "✓" : ""}</span><span style={{ fontSize: 18 }}>{o.i}</span>{o.l}</button>; })}</div>
+              <button onClick={() => { if (multi.length) next(multi); }} disabled={!multi.length} style={{ marginTop: 12, width: "100%", background: multi.length ? B.purple : "#E5E7EB", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: multi.length ? "pointer" : "default", fontFamily: font }}>Valider</button>
+            </>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROTOCOL ───
+function Protocol({ ans }) {
+  const z = ZONE_DATA[ans.zone] || ZONE_DATA.bikini;
+  const m = METHOD_TIPS[ans.method] || METHOD_TIPS.razor;
+  const sk = SKIN_DATA[ans.skin] || SKIN_DATA.normal;
+  const sp = SPEED[getSpeed(ans.frequency)];
+  const pa = getProbAdv(ans.problems);
+
+  return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}` }}>
+        <span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span>
+        <h1 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "6px 0 0" }}>Protocole de {ans.name}</h1>
+        <p style={{ fontSize: 12, color: B.textMuted, margin: "2px 0 0" }}>{sp.badge} {sp.label} — {z.label} {z.icon}</p>
+      </div>
+      <div style={{ padding: "14px 16px 90px" }}>
+        <Card style={{ background: B.purpleSoft, border: `1px solid ${B.purpleLight}` }}>
+          <Heading>{sp.badge} {sp.label}</Heading>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: 0 }}>{sp.desc}</p>
+        </Card>
+
+        <Card>
+          <Heading>{z.icon} Protocole — {z.label}</Heading>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: "0 0 10px" }}>{z.protocol}</p>
+          {z.tips.map((t, i) => <p key={i} style={{ fontSize: 12, color: B.textSoft, margin: "3px 0", paddingLeft: 10, borderLeft: `2px solid ${B.purpleLight}` }}>→ {t}</p>)}
+        </Card>
+
+        <Card>
+          <Heading>{m.icon} Méthode : {m.label}</Heading>
+          <div style={{ background: B.goldBg, borderRadius: 8, padding: "7px 12px", marginBottom: 8, fontSize: 12, fontWeight: 600, color: B.gold }}>⏱ {m.timing}</div>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: 0 }}>{m.tip}</p>
+        </Card>
+
+        <Card>
+          <Heading>🧤 Gant exfoliant — Peau {sk.label}</Heading>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.6, margin: "0 0 4px" }}>{z.glove}</p>
+          <p style={{ fontSize: 12.5, color: B.textSoft, lineHeight: 1.6, margin: 0 }}>{sk.extra}</p>
+        </Card>
+
+        {/* ── NOTE GANT ── */}
+        <Card style={{ background: B.pageBg, border: `1px solid ${B.border}` }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 18 }}>💡</span>
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: B.text, marginBottom: 4 }}>Le saviez-vous ?</div>
+              <p style={{ fontSize: 12, color: B.textSoft, lineHeight: 1.6, margin: 0 }}>L'exfoliation régulière améliore la pénétration des actifs en retirant les cellules mortes qui forment une barrière naturelle. Si vous souhaitez compléter votre routine, le gant exfoliant Lillow est disponible sur <a href={PRODUCT_URL} target="_blank" rel="noopener" style={{ color: B.purple, textDecoration: "none", fontWeight: 500 }}>lillow.fr</a>.</p>
+            </div>
+          </div>
+        </Card>
+
+        {pa.length > 0 && <Card><Heading>🎯 Recommandations</Heading>{pa.map((a, i) => <p key={i} style={{ fontSize: 12.5, color: B.textSoft, lineHeight: 1.6, margin: "5px 0", paddingLeft: 10, borderLeft: `2px solid ${B.purpleLight}` }}>{a}</p>)}</Card>}
+
+        <Card style={{ background: B.purpleDeep, border: "none", color: "#fff" }}>
+          <Heading><span style={{ color: "#fff" }}>☀️ Routine quotidienne</span></Heading>
+          {[{ t: "Matin ☀️", s: ["Nettoyez à l'eau claire", "Séchez bien", "Appliquez le sérum Lillow®", "Massez jusqu'à absorption"] }, { t: "Soir 🌙", s: ["Nettoyez", "Séchez", "Appliquez le sérum", "Laissez poser toute la nuit"] }].map((r, i) => (
+            <div key={i} style={{ marginBottom: i === 0 ? 12 : 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: B.gold, letterSpacing: 0.5, marginBottom: 4 }}>{r.t}</div>
+              {r.s.map((s, j) => <p key={j} style={{ fontSize: 12, margin: "2px 0", opacity: 0.85 }}>{j + 1}. {s}</p>)}
+            </div>
+          ))}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── CALENDAR ───
+function CalendarPage({ ans, cal, setCal, start }) {
+  const today = todayStr();
+  const dayIdx = start ? Math.max(0, Math.floor((new Date(today) - new Date(start)) / 86400000)) : 0;
+  const totalC = Object.values(cal).filter(Boolean).length;
+  const maxC = Math.max(1, (dayIdx + 1) * 2);
+  const adh = Math.round((totalC / maxC) * 100);
+
+  const toggle = (ds, p) => { if (ds !== today) return; const k = `${ds}-${p}`; setCal(prev => ({ ...prev, [k]: !prev[k] })); };
+
+  return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}` }}>
+        <span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span>
+        <h1 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "6px 0 0" }}>Calendrier 90 jours</h1>
+        <p style={{ fontSize: 12, color: B.textMuted, margin: "2px 0 0" }}>Jour {dayIdx + 1}/90 — Adhérence : {adh}%</p>
+      </div>
+
+      <div style={{ padding: "14px 16px 90px" }}>
+        <Card>
+          <div style={{ fontSize: 13, fontWeight: 600, color: B.text, marginBottom: 10 }}>Aujourd'hui — Jour {dayIdx + 1}</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[{ p: "am", l: "Matin", e: "☀️" }, { p: "pm", l: "Soir", e: "🌙" }].map(x => {
+              const ok = cal[`${today}-${x.p}`];
+              return (
+                <button key={x.p} onClick={() => toggle(today, x.p)} style={{ flex: 1, background: ok ? B.successBg : B.pageBg, border: `2px solid ${ok ? B.success : B.border}`, borderRadius: 12, padding: "16px 10px", cursor: "pointer", textAlign: "center" }}>
+                  <div style={{ fontSize: 24 }}>{ok ? "✅" : x.e}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: ok ? B.success : B.textSoft, marginTop: 4 }}>{x.l}</div>
+                  <div style={{ fontSize: 10, color: ok ? B.success : B.textMuted, marginTop: 2 }}>{ok ? "Validé !" : "Appuyer pour valider"}</div>
+                </button>
+              );
+            })}
+          </div>
+          <p style={{ fontSize: 10, color: B.textMuted, textAlign: "center", margin: "8px 0 0", fontStyle: "italic" }}>⚠️ Seul le jour en cours peut être validé</p>
+        </Card>
+
+        <Card>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
+            <span style={{ color: B.textMuted }}>Adhérence</span>
+            <span style={{ fontWeight: 700, color: adh >= 80 ? B.success : adh >= 50 ? B.warn : B.error }}>{adh}%</span>
+          </div>
+          <div style={{ height: 6, background: B.border, borderRadius: 3 }}>
+            <div style={{ height: "100%", width: `${adh}%`, background: adh >= 80 ? B.success : adh >= 50 ? B.warn : B.error, borderRadius: 3, transition: "width 0.5s" }} />
+          </div>
+        </Card>
+
+        {Array.from({ length: 13 }, (_, wi) => {
+          const ph = PHASES[Math.min(Math.floor(wi / 2), 5)];
+          const newPh = wi % 2 === 0 && wi < 12;
+          return (
+            <div key={wi}>
+              {newPh && <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "12px 0 6px", padding: "6px 10px", background: B.purpleSoft, borderRadius: 8 }}><span style={{ fontSize: 14 }}>{ph.icon}</span><div><div style={{ fontSize: 10, fontWeight: 600, color: B.purple }}>{ph.week}</div><div style={{ fontSize: 11, fontWeight: 600, color: B.text }}>{ph.label}</div></div></div>}
+              <Card style={{ padding: "10px" }}>
+                <div style={{ fontSize: 9, fontWeight: 600, color: B.textMuted, marginBottom: 5 }}>S{wi + 1}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+                  {Array.from({ length: 7 }, (_, d) => {
+                    const day = wi * 7 + d;
+                    if (day >= 90) return <div key={d} />;
+                    const ds = dayToDate(start, day);
+                    const isT = ds === today, past = ds < today, fut = ds > today;
+                    const am = cal[`${ds}-am`], pm = cal[`${ds}-pm`];
+                    const both = am && pm, partial = (am || pm) && !both;
+                    let bg = "#fff", bc = B.border;
+                    if (both) { bg = B.successBg; bc = B.success; } else if (partial) { bg = B.warnBg; bc = B.warn; } else if (past) { bg = B.errorBg; bc = "#FCA5A5"; }
+                    if (isT) bc = B.purple;
+                    return (
+                      <div key={d} style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 8, color: isT ? B.purple : B.textMuted, fontWeight: isT ? 700 : 400, marginBottom: 2 }}>{isT ? "Auj" : day + 1}</div>
+                        <div style={{ width: "100%", aspectRatio: "1", borderRadius: 5, border: `1.5px solid ${bc}`, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: both ? 9 : 7, color: both ? B.success : partial ? B.warn : past ? B.error : B.textMuted, fontWeight: 600, boxShadow: isT ? `0 0 0 2px ${B.purpleLight}` : "none" }}>
+                          {both ? "✓✓" : partial ? "½" : fut ? "·" : past ? "✗" : "·"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </div>
+          );
+        })}
+
+        <Card>
+          <div style={{ fontSize: 9, fontWeight: 600, color: B.textMuted, marginBottom: 5 }}>LÉGENDE</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {[{ bg: B.successBg, bc: B.success, l: "2 ✓" }, { bg: B.warnBg, bc: B.warn, l: "1 appli" }, { bg: B.errorBg, bc: "#FCA5A5", l: "Manqué" }, { bg: "#fff", bc: B.border, l: "À venir" }].map((x, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <div style={{ width: 12, height: 12, borderRadius: 3, background: x.bg, border: `1.5px solid ${x.bc}` }} />
+                <span style={{ fontSize: 10, color: B.textSoft }}>{x.l}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── FAQ ───
+function FaqPage({ ans }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}` }}>
+        <span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span>
+        <h1 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "6px 0 0" }}>Questions fréquentes</h1>
+        <p style={{ fontSize: 12, color: B.textMuted, margin: "2px 0 0" }}>Les réponses à vos questions les plus courantes</p>
+      </div>
+      <div style={{ padding: "14px 16px 90px" }}>
+        {FAQ_DATA.map((f, i) => (
+          <Card key={i} style={{ cursor: "pointer" }} onClick={() => setOpen(open === i ? null : i)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: B.text, lineHeight: 1.4, flex: 1 }}>{f.q}</div>
+              <span style={{ fontSize: 16, color: B.textMuted, flexShrink: 0, transition: "transform 0.2s", transform: open === i ? "rotate(45deg)" : "none" }}>+</span>
+            </div>
+            {open === i && (
+              <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: "10px 0 0", paddingTop: 10, borderTop: `1px solid ${B.border}` }}>{f.a}</p>
+            )}
+          </Card>
+        ))}
+        <Card style={{ textAlign: "center" }}>
+          <p style={{ fontSize: 12, color: B.textMuted, margin: 0 }}>Vous ne trouvez pas votre réponse ? Contactez-nous via l'email reçu lors de votre commande.</p>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ─── VIP ───
+function Vip({ ans }) {
+  return (
+    <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+      <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}`, textAlign: "center" }}>
+        <div style={{ fontSize: 28, marginBottom: 6 }}>👑</div>
+        <span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span>
+        <h1 style={{ fontFamily: fontS, fontSize: 22, color: B.text, margin: "4px 0 0" }}>Espace VIP</h1>
+      </div>
+      <div style={{ padding: "14px 16px 90px" }}>
+        <Card style={{ background: B.goldBg, border: `1px solid ${B.goldBorder}`, textAlign: "center", padding: "22px 18px" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: B.gold, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>Votre code privilège à vie</div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: B.purpleDeep, letterSpacing: 6, fontFamily: font, marginBottom: 6 }}>VIP20</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: B.purple, marginBottom: 10 }}>-20% sur toutes vos commandes</div>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.6, margin: 0 }}>Valable à vie, sans limite. Entrez le code <strong>VIP20</strong> à chaque commande.</p>
+        </Card>
+
+        <Card>
+          <Heading>🔄 Renouveler ma cure</Heading>
+          <p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.6, margin: "0 0 12px" }}>Maintenez vos acquis. Pensez à entrer votre code VIP20 lors du paiement.</p>
+          <a href={PRODUCT_URL} target="_blank" rel="noopener" style={{ display: "block", textAlign: "center", background: B.purple, color: "#fff", padding: "12px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", fontFamily: font }}>Commander ma cure →</a>
+        </Card>
+
+        <Card>
+          <Heading>✨ Vos avantages</Heading>
+          {[
+            { i: "🏷️", t: "-20% à vie", d: "Sur toutes vos commandes" },
+            { i: "🚀", t: "Accès prioritaire", d: "Nouveautés en avant-première" },
+            { i: "📱", t: "Programme Expert", d: "Protocole + suivi personnalisé" },
+            { i: "💬", t: "Support prioritaire", d: "Réponse express" },
+          ].map((b, i) => (
+            <div key={i} style={{ display: "flex", gap: 10, padding: "10px 0", borderTop: i ? `1px solid ${B.border}` : "none" }}>
+              <span style={{ fontSize: 18 }}>{b.i}</span>
+              <div><div style={{ fontSize: 13, fontWeight: 600, color: B.text }}>{b.t}</div><div style={{ fontSize: 12, color: B.textMuted }}>{b.d}</div></div>
+            </div>
+          ))}
+        </Card>
+
+        <ShareCard name={ans?.name} />
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+function App() {
+  const [tab, setTab] = useState("home");
+  const [ans, setAns] = useState(null);
+  const [cal, setCal] = useState({});
+  const [start, setStart] = useState(null);
+  const [cureOn, setCureOn] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const a = sG(SK.ans), c = sG(SK.cal), s = sG(SK.start), cu = sG(SK.cure);
+    if (a) setAns(a); if (c) setCal(c); if (s) setStart(s); if (cu) setCureOn(true);
+    setReady(true);
+  }, []);
+
+  useEffect(() => { if (ready && ans) sS(SK.ans, ans); }, [ans, ready]);
+  useEffect(() => { if (ready && Object.keys(cal).length) sS(SK.cal, cal); }, [cal, ready]);
+  useEffect(() => { if (ready && start) sS(SK.start, start); }, [start, ready]);
+  useEffect(() => { if (ready && cureOn) sS(SK.cure, true); }, [cureOn, ready]);
+
+  const quizDone = !!ans;
+  const startCure = () => { setCureOn(true); setStart(todayStr()); };
+
+  const handleReset = () => {
+    setAns(null); setCal({}); setStart(null); setCureOn(false); setTab("home");
+    sS(SK.ans, null); sS(SK.cal, null); sS(SK.start, null); sS(SK.cure, null);
+  };
+
+  if (!ready) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" }}><span style={{ fontFamily: fontS, fontSize: 20, color: B.purple }}>Lillow®</span></div>;
+
+  return (
+    <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", background: B.pageBg, paddingBottom: 90, fontFamily: font }}>
+
+      {tab === "home" && <Home ans={ans} cal={cal} start={start} cureOn={cureOn} onNav={setTab} onStartCure={startCure} onReset={handleReset} />}
+      {tab === "quiz" && <Quiz onComplete={a => { setAns(a); setTab("home"); }} existing={ans} />}
+      {tab === "protocol" && quizDone && <Protocol ans={ans} />}
+      {tab === "calendar" && quizDone && cureOn && <CalendarPage ans={ans} cal={cal} setCal={setCal} start={start} />}
+      {tab === "calendar" && quizDone && !cureOn && (
+        <div style={{ background: B.pageBg, minHeight: "100vh" }}>
+          <div style={{ background: "#fff", padding: "18px 20px", borderBottom: `1px solid ${B.border}` }}><span style={{ fontFamily: fontS, fontSize: 16, fontWeight: 700, color: B.purple }}>Lillow®</span><h1 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "6px 0 0" }}>Calendrier 90 jours</h1></div>
+          <div style={{ padding: "40px 20px", textAlign: "center" }}><div style={{ fontSize: 40, marginBottom: 14 }}>📦</div><h2 style={{ fontFamily: fontS, fontSize: 20, color: B.text, margin: "0 0 8px" }}>En attente de votre colis</h2><p style={{ fontSize: 13, color: B.textSoft, lineHeight: 1.7, margin: "0 0 20px" }}>Votre calendrier démarre dès réception de votre commande.</p><button onClick={startCure} style={{ background: B.purple, color: "#fff", border: "none", padding: "13px 24px", borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: font }}>📦 J'ai reçu ma commande</button></div>
+        </div>
+      )}
+      {tab === "faq" && quizDone && <FaqPage ans={ans} />}
+      {tab === "vip" && quizDone && <Vip ans={ans} />}
+
+      <AddToHomeScreen />
+      <Nav active={tab} go={setTab} unlocked={quizDone} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
